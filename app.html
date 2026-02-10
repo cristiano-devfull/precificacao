@@ -17,6 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
 
 <body>
@@ -104,10 +105,9 @@
                 <p>O seu acesso de 7 dias chegou ao fim. Para continuar transformando custo em lucro e gerar novos
                     relatórios, assine agora o Plano Pro.</p>
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <a href="https://www.mercadopago.com.br/checkout/v1/payment/redirect/?preference-id=SEU_ID_AQUI"
-                        target="_blank" class="btn-primary-lg"
-                        style="text-decoration: none; text-align: center; background: #009EE3;">PAGAR COM MERCADO
-                        PAGO</a>
+                    <button id="btn-pay-mp" class="btn-primary-lg"
+                        style="width: 100%; border: none; cursor: pointer; background: #009EE3;">ASSINAR PLANO PRO (R$
+                        49,90)</button>
                     <button id="logout-paywall"
                         style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; padding: 0.5rem; border-radius: var(--radius);">Sair
                         da conta</button>

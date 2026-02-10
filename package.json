@@ -1,0 +1,13 @@
+{
+    "name": "precificacao-pro",
+    "version": "1.0.0",
+    "description": "Sistema de Precificação Inteligente com Integração Mercado Pago",
+    "main": "index.html",
+    "dependencies": {
+        "mercadopago": "^2.0.10"
+    },
+    "devDependencies": {},
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    }
+}

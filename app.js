@@ -147,6 +147,61 @@ function initAuthUI() {
   });
 }
 
+async function checkPaymentStatus() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const status = urlParams.get('status');
+
+  if (status === 'success' && currentUser) {
+    showToast("Pagamento Confirmado! Liberando acesso...", "success");
+    try {
+      localStorage.setItem(`is_paid_${currentUser.id}`, 'true');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => { location.reload(); }, 2000);
+    } catch (err) { console.error("Erro ao validar pagamento:", err); }
+  }
+}
+
+async function initMercadoPago() {
+  const btnPay = document.getElementById('btn-pay-mp');
+  if (!btnPay) return;
+
+  btnPay.addEventListener('click', async () => {
+    btnPay.disabled = true;
+    btnPay.innerText = "GERANDO PAGAMENTO...";
+
+    try {
+      const response = await fetch('/api/create-preference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: currentUser.email,
+          userId: currentUser.id
+        })
+      });
+
+      const data = await response.json();
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        throw new Error("Erro ao gerar link de pagamento");
+      }
+    } catch (err) {
+      showToast("Falha ao iniciar checkout. Tente novamente.", "error");
+      btnPay.disabled = false;
+      btnPay.innerText = "ASSINAR PLANO PRO (R$ 49,90)";
+    }
+  });
+
+  const paywallLogoutBtn = document.getElementById('logout-paywall');
+  if (paywallLogoutBtn) {
+    paywallLogoutBtn.addEventListener('click', () => {
+      supabaseClient.auth.signOut().then(() => {
+        window.location.href = 'index.html';
+      });
+    });
+  }
+}
+
 async function checkSession() {
   const { data } = await supabaseClient.auth.getSession();
   session = data.session;
@@ -160,15 +215,11 @@ async function checkSession() {
     if (currentUser) loadData();
   });
 
-  // Listener para sair via Paywall
-  const paywallLogoutBtn = document.getElementById('logout-paywall');
-  if (paywallLogoutBtn) {
-    paywallLogoutBtn.addEventListener('click', () => {
-      supabaseClient.auth.signOut().then(() => {
-        window.location.href = 'index.html';
-      });
-    });
-  }
+  // Listener para capturar retorno do pagamento (Query String)
+  checkPaymentStatus();
+
+  // Listener para Assinatura Mercado Pago
+  initMercadoPago();
 }
 
 function updateUIState() {
@@ -191,7 +242,7 @@ function updateUIState() {
     const diffDays = Math.ceil((now - createdAt) / (1000 * 60 * 60 * 24));
 
     // Simulação de check de pagamento
-    let isPaid = currentUser.app_metadata?.is_paid || false;
+    let isPaid = currentUser.app_metadata?.is_paid || localStorage.getItem(`is_paid_${currentUser.id}`) === 'true' || false;
 
     // EXCEÇÃO ADMINISTRATIVA: Seu acesso é sempre liberado
     if (currentUser.email === 'contato@r2cautomacoes.com.br' || currentUser.email === 'cristiano112715@gmail.com') {
