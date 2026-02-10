@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | PRECIFICAÇÃO PRO</title>
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#00F5FF" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="./assets/logo.png" alt="Logo">
+            PRECIFICAÇÃO <span>PRO</span>
+        </div>
+
+        <div class="nav-actions">
+            <!-- System Status -->
+            <div id="system-status" class="hide-mobile">
+                STATUS: <span id="status-val">ONLINE</span>
+            </div>
+
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-checkbox" />
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div id="auth-buttons" class="auth-buttons">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- App Shell -->
+    <main class="container">
+        <!-- Dashboard Header (Operational Status) -->
+        <section id="dashboard" class="dashboard-grid hidden"></section>
+
+        <!-- Main Workspace -->
+        <div id="app" class="app-shell hidden">
+            <!-- Sidebar Navigation (Control Interface) -->
+            <aside class="sidebar">
+                <div class="sidebar-header">MENU DE NAVEGAÇÃO</div>
+                <nav class="tabs" id="main-tabs">
+                    <button class="tab-btn active" data-tab="custos-fixos">CUSTOS FIXOS</button>
+                    <button class="tab-btn" data-tab="insumos">INSUMOS</button>
+                    <button class="tab-btn" data-tab="produtos">PRODUTOS</button>
+                    <button class="tab-btn" data-tab="ficha-tecnica">FICHA TÉCNICA</button>
+                    <button class="tab-btn" data-tab="precificacao-fabricacao">FABRICAÇÃO</button>
+                    <button class="tab-btn" data-tab="precificacao-revenda">REVENDA</button>
+                    <button class="tab-btn" data-tab="configuracoes">CONFIGURAÇÕES</button>
+                </nav>
+            </aside>
+
+            <!-- Workspace Content -->
+            <section id="tab-content" class="workspace-area"></section>
+        </div>
+
+        <!-- Auth Terminal (Secure Access) -->
+        <section id="auth-section" class="auth-terminal hidden">
+            <div class="terminal-card">
+                <div class="terminal-header">PORTAL DE ACESSO SEGURO</div>
+                <h2 id="auth-title">ENTRAR NO SISTEMA</h2>
+                <form id="auth-form">
+                    <div class="input-group">
+                        <label>E-MAIL</label>
+                        <input type="email" id="auth-email" placeholder="seu@email.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>SENHA</label>
+                        <input type="password" id="auth-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" id="auth-submit">ENTRAR</button>
+                </form>
+                <div class="auth-footer">
+                    <div class="auth-toggle">
+                        <span id="auth-toggle-text">NÃO TEM UMA CONTA?</span>
+                        <button id="auth-toggle-link">CRIAR CONTA</button>
+                    </div>
+                    <a href="recuperar-senha.html" id="forgot-password-link">ESQUECEU A SENHA? RECUPERAR</a>
+                </div>
+            </div>
+        </section>
+        <!-- Trial Block (Paywall) -->
+        <section id="trial-section" class="paywall-container hidden">
+            <div class="paywall-card">
+                <span class="paywall-icon">🚀</span>
+                <h2>Seu período grátis acabou!</h2>
+                <p>O seu acesso de 7 dias chegou ao fim. Para continuar transformando custo em lucro e gerar novos
+                    relatórios, assine agora o Plano Pro.</p>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="https://www.mercadopago.com.br/checkout/v1/payment/redirect/?preference-id=SEU_ID_AQUI"
+                        target="_blank" class="btn-primary-lg"
+                        style="text-decoration: none; text-align: center; background: #009EE3;">PAGAR COM MERCADO
+                        PAGO</a>
+                    <button id="logout-paywall"
+                        style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; padding: 0.5rem; border-radius: var(--radius);">Sair
+                        da conta</button>
+                </div>
+                <p style="font-size: 0.7rem; margin-top: 1.5rem;">Seus dados (custos e insumos) estão salvos e serão
+                    liberados imediatamente após o pagamento.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification Engine -->
+    <div id="toast-container"></div>
+
+    <footer class="system-footer">
+        <div class="footer-line"></div>
+        <p>R2C_AUTOMAÇÕES // NÚCLEO OPERACIONAL v2.5 // [SEGURANÇA ATIVA]</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

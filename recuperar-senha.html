@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recuperar Senha - PRECIFICAÇÃO PRO</title>
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="auth-flow">
+    <!-- Navbar (Simplified) -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="./assets/logo.png" alt="Logo">
+            PRECIFICAÇÃO <span>PRO</span>
+        </div>
+
+        <div class="nav-actions">
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-checkbox" />
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="auth-terminal">
+            <div class="terminal-card">
+                <div class="terminal-header">PAINEL DE RECUPERAÇÃO</div>
+
+                <!-- Phase 1: Request Reset -->
+                <div id="request-reset-phase">
+                    <h2>RECUPERAR SENHA</h2>
+                    <p style="color: var(--text-muted); text-align: center; margin-bottom: 2rem; font-size: 0.9rem;">
+                        Informe seu e-mail para receber um link de acesso.
+                    </p>
+                    <form id="request-reset-form">
+                        <div class="input-group">
+                            <label>E-MAIL CADASTRADO</label>
+                            <input type="email" id="reset-email" placeholder="exemplo@email.com" required>
+                        </div>
+                        <button type="submit" id="reset-submit">SOLICITAR LINK</button>
+                    </form>
+                </div>
+
+                <!-- Phase 2: Update Password -->
+                <div id="update-password-phase" class="hidden">
+                    <h2>NOVA SENHA</h2>
+                    <p style="color: var(--text-muted); text-align: center; margin-bottom: 2rem; font-size: 0.9rem;">
+                        Defina sua nova senha de acesso.
+                    </p>
+                    <form id="update-password-form">
+                        <div class="input-group">
+                            <label>NOVA SENHA</label>
+                            <input type="password" id="new-password" placeholder="••••••••" required minlength="6">
+                        </div>
+                        <div class="input-group">
+                            <label>CONFIRMAR SENHA</label>
+                            <input type="password" id="confirm-password" placeholder="••••••••" required minlength="6">
+                        </div>
+                        <button type="submit" id="update-submit">ATUALIZAR ACESSO</button>
+                    </form>
+                </div>
+
+                <div class="auth-footer">
+                    <a href="index.html" id="forgot-password-link" style="text-decoration: none;">VOLTAR PARA O
+                        LOGIN</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <footer class="system-footer">
+        <div class="footer-line"></div>
+        <p>R2C_AUTOMAÇÕES // NÚCLEO OPERACIONAL v2.5 // [SEGURANÇA ATIVA]</p>
+    </footer>
+
+    <script type="module" src="recuperar-senha.js"></script>
+</body>
+
+</html>
