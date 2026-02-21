@@ -1,8 +1,30 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
 export default async function handler(req, res) {
+    // Log inicial para debugar o método que chega no Vercel
+    console.log(`DEBUG: Requisição ${req.method} recebida em /api/create-preference`);
+
+    // Habilitar CORS
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
+
+    // Responder ao Preflight do CORS (OPTIONS)
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+
     if (req.method !== 'POST') {
-        return res.status(405).json({ message: 'Method not allowed' });
+        return res.status(405).json({
+            message: 'Method not allowed',
+            receivedMethod: req.method,
+            tip: 'Certifique-se de que a chamada fetch no app.js está usando method: POST'
+        });
     }
 
     const { email, userId, plan } = req.body || {};
