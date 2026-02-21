@@ -43,8 +43,8 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event: Stale-while-revalidate strategy
 self.addEventListener('fetch', (event) => {
-    // Skip cross-origin requests (like Supabase API) to avoid caching issues
-    if (!event.request.url.startsWith(self.location.origin)) return;
+    // Only cache GET requests and local origin
+    if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) return;
 
     event.respondWith(
         caches.open(CACHE_NAME).then((cache) => {

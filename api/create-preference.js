@@ -7,6 +7,16 @@ export default async function handler(req, res) {
 
     const { email, userId, plan } = req.body;
 
+    if (!email || !userId) {
+        return res.status(400).json({ message: 'Email and UserId are required' });
+    }
+
+    const accessToken = process.env.MP_ACCESS_TOKEN;
+    if (!accessToken || accessToken === 'SUA_CHAVE_DE_TESTE_AQUI') {
+        console.error('ERRO: MP_ACCESS_TOKEN não configurado no Vercel');
+        return res.status(500).json({ message: 'Erro de configuração no servidor (Token ausente)' });
+    }
+
     let title = 'PRECIFICAÇÃO PRO - Plano Anual';
     let unitPrice = 159.90;
 
@@ -17,7 +27,7 @@ export default async function handler(req, res) {
 
     // Configuração do Mercado Pago com Token de Ambiente
     const client = new MercadoPagoConfig({
-        accessToken: process.env.MP_ACCESS_TOKEN || 'SUA_CHAVE_DE_TESTE_AQUI'
+        accessToken: accessToken
     });
 
     const preference = new Preference(client);
@@ -30,7 +40,7 @@ export default async function handler(req, res) {
                         id: plan === 'promo' ? 'plano-pro-promo' : 'plano-pro-full',
                         title: title,
                         quantity: 1,
-                        unit_price: unitPrice,
+                        unit_price: Number(unitPrice),
                         currency_id: 'BRL'
                     }
                 ],
@@ -49,7 +59,11 @@ export default async function handler(req, res) {
 
         res.status(200).json({ id: response.id, init_point: response.init_point });
     } catch (error) {
-        console.error('Erro ao criar preferência:', error);
-        res.status(500).json({ message: 'Erro interno ao criar pagamento' });
+        console.error('Erro Mercado Pago:', error);
+        res.status(500).json({
+            message: 'Erro ao gerar pagamento',
+            details: error.message,
+            error: process.env.NODE_ENV === 'development' ? error : undefined
+        });
     }
 }
