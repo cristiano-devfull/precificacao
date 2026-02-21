@@ -167,15 +167,21 @@ async function initMercadoPago() {
 
   btnPay.addEventListener('click', async () => {
     btnPay.disabled = true;
+    const originalText = btnPay.innerText;
     btnPay.innerText = "GERANDO PAGAMENTO...";
 
     try {
+      // Determina qual plano cobrar baseado no estado atual
+      const isPromoPaid = currentUser.app_metadata?.is_promo_paid || localStorage.getItem(`is_promo_paid_${currentUser.id}`) === 'true';
+      const planToCharge = isPromoPaid ? 'full' : 'promo';
+
       const response = await fetch('/api/create-preference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: currentUser.email,
-          userId: currentUser.id
+          userId: currentUser.id,
+          plan: planToCharge
         })
       });
 
@@ -188,7 +194,7 @@ async function initMercadoPago() {
     } catch (err) {
       showToast("Falha ao iniciar checkout. Tente novamente.", "error");
       btnPay.disabled = false;
-      btnPay.innerText = "ASSINAR PLANO PRO (R$ 49,90)";
+      btnPay.innerText = originalText;
     }
   });
 
@@ -236,27 +242,56 @@ function updateUIState() {
 
     if (systemStatus) systemStatus.classList.remove('hidden');
 
-    // Lógica de Trial (7 dias)
+    // Lógicas de Acesso
     const createdAt = new Date(currentUser.created_at);
     const now = new Date();
     const diffDays = Math.ceil((now - createdAt) / (1000 * 60 * 60 * 24));
 
-    // Simulação de check de pagamento
-    let isPaid = currentUser.app_metadata?.is_paid || localStorage.getItem(`is_paid_${currentUser.id}`) === 'true' || false;
+    // Verificação de Pagamentos (Simulada via LocalStorage para exemplo)
+    let isPromoPaid = currentUser.app_metadata?.is_promo_paid || localStorage.getItem(`is_promo_paid_${currentUser.id}`) === 'true' || false;
+    let isFullyPaid = currentUser.app_metadata?.is_fully_paid || localStorage.getItem(`is_fully_paid_${currentUser.id}`) === 'true' || false;
 
-    // EXCEÇÃO ADMINISTRATIVA: Seu acesso é sempre liberado
+    // EXCEÇÃO ADMINISTRATIVA
     if (currentUser.email === 'contato@r2cautomacoes.com.br' || currentUser.email === 'cristiano112715@gmail.com') {
-      isPaid = true;
+      isFullyPaid = true;
     }
 
-    if (diffDays > 7 && !isPaid) {
-      // Bloqueio por Trial expirado
+    let accessBlocked = false;
+    const trialTitle = document.getElementById('trial-title');
+    const trialDesc = document.getElementById('trial-desc');
+    const btnPay = document.getElementById('btn-pay-mp');
+
+    if (isFullyPaid) {
+      // Acesso Total Liberado
+      accessBlocked = false;
+    } else if (isPromoPaid) {
+      // Checa se o mês promocional expirou (30 dias + 7 de trial = 37 dias)
+      if (diffDays > 37) {
+        accessBlocked = true;
+        if (trialTitle) trialTitle.innerText = "Sua promoção expirou!";
+        if (trialDesc) trialDesc.innerText = "Seu mês promocional chegou ao fim. Para continuar usando o Precificação Pro por mais 11 meses, realize o upgrade agora.";
+        if (btnPay) btnPay.innerText = "ASSINAR PLANO ANUAL (R$ 159,90)";
+      } else {
+        accessBlocked = false;
+      }
+    } else {
+      // Não pagou promo. Checa se trial expirou.
+      if (diffDays > 7) {
+        accessBlocked = true;
+        if (trialTitle) trialTitle.innerText = "Seu período grátis acabou!";
+        if (trialDesc) trialDesc.innerText = "O seu acesso de 7 dias chegou ao fim. Aproveite nossa oferta de 1 mês por apenas R$ 19,90!";
+        if (btnPay) btnPay.innerText = "ASSINAR PROMOÇÃO (R$ 19,90)";
+      } else {
+        accessBlocked = false;
+      }
+    }
+
+    if (accessBlocked) {
       dashboardSection.classList.add('hidden');
       appContainer.classList.add('hidden');
       authSection.classList.add('hidden');
       trialSection.classList.remove('hidden');
     } else {
-      // Acesso liberado
       dashboardSection.classList.remove('hidden');
       appContainer.classList.remove('hidden');
       authSection.classList.add('hidden');

@@ -5,7 +5,15 @@ export default async function handler(req, res) {
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    const { email, userId } = req.body;
+    const { email, userId, plan } = req.body;
+
+    let title = 'PRECIFICAÇÃO PRO - Plano Anual';
+    let unitPrice = 159.90;
+
+    if (plan === 'promo') {
+        title = 'PRECIFICAÇÃO PRO - Mês Promocional (30 dias)';
+        unitPrice = 19.90;
+    }
 
     // Configuração do Mercado Pago com Token de Ambiente
     const client = new MercadoPagoConfig({
@@ -19,10 +27,10 @@ export default async function handler(req, res) {
             body: {
                 items: [
                     {
-                        id: 'plano-pro-anual',
-                        title: 'PRECIFICAÇÃO PRO - Plano Anual (12 meses)',
+                        id: plan === 'promo' ? 'plano-pro-promo' : 'plano-pro-full',
+                        title: title,
                         quantity: 1,
-                        unit_price: 49.90, // Valor de exemplo, ajuste conforme necessário
+                        unit_price: unitPrice,
                         currency_id: 'BRL'
                     }
                 ],
