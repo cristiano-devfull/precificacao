@@ -175,7 +175,7 @@ async function initMercadoPago() {
       const isPromoPaid = currentUser.app_metadata?.is_promo_paid || localStorage.getItem(`is_promo_paid_${currentUser.id}`) === 'true';
       const planToCharge = isPromoPaid ? 'full' : 'promo';
 
-      const response = await fetch('/api/create-preference', {
+      const response = await fetch('/api/create-preference.js', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
