@@ -5,16 +5,25 @@ export default async function handler(req, res) {
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    const { email, userId, plan } = req.body;
+    const { email, userId, plan } = req.body || {};
+
+    console.log('DEBUG: Requisição recebida', {
+        hasBody: !!req.body,
+        email,
+        userId,
+        plan,
+        method: req.method,
+        hasToken: !!process.env.MP_ACCESS_TOKEN
+    });
 
     if (!email || !userId) {
-        return res.status(400).json({ message: 'Email and UserId are required' });
+        return res.status(400).json({ message: 'Email e UserId são obrigatórios no corpo da requisição.' });
     }
 
     const accessToken = process.env.MP_ACCESS_TOKEN;
     if (!accessToken || accessToken === 'SUA_CHAVE_DE_TESTE_AQUI') {
-        console.error('ERRO: MP_ACCESS_TOKEN não configurado no Vercel');
-        return res.status(500).json({ message: 'Erro de configuração no servidor (Token ausente)' });
+        console.error('ERRO: MP_ACCESS_TOKEN não está definido nas variáveis de ambiente do Vercel.');
+        return res.status(500).json({ message: 'Erro de configuração: Variável MP_ACCESS_TOKEN ausente ou padrão.' });
     }
 
     let title = 'PRECIFICAÇÃO PRO - Plano Anual';
@@ -24,6 +33,8 @@ export default async function handler(req, res) {
         title = 'PRECIFICAÇÃO PRO - Mês Promocional (30 dias)';
         unitPrice = 19.90;
     }
+
+    console.log('DEBUG: Criando preferência Mercado Pago', { title, unitPrice });
 
     // Configuração do Mercado Pago com Token de Ambiente
     const client = new MercadoPagoConfig({
@@ -57,13 +68,17 @@ export default async function handler(req, res) {
             }
         });
 
+        console.log('DEBUG: Preferência criada com sucesso', { id: response.id });
         res.status(200).json({ id: response.id, init_point: response.init_point });
     } catch (error) {
-        console.error('Erro Mercado Pago:', error);
+        console.error('DEBUG: Erro detalhado Mercado Pago:', {
+            message: error.message,
+            stack: error.stack,
+            cause: error.cause
+        });
         res.status(500).json({
-            message: 'Erro ao gerar pagamento',
-            details: error.message,
-            error: process.env.NODE_ENV === 'development' ? error : undefined
+            message: 'Erro ao gerar pagamento no Mercado Pago',
+            details: error.message
         });
     }
 }
