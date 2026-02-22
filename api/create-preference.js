@@ -69,26 +69,6 @@ export default async function handler(req, res) {
 
     const preference = new Preference(client);
 
-    // Validação extra: Testar se o token é aceito pela API do Mercado Pago
-    try {
-        const testResponse = await fetch('https://api.mercadopago.com/v1/users/me', {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-        if (!testResponse.ok) {
-            const errorData = await testResponse.json();
-            console.error('ERRO CRÍTICO: Token inválido detectado pelo teste direto!', errorData);
-            return res.status(401).json({
-                message: 'Token do Mercado Pago Inválido',
-                details: errorData.message || 'O Mercado Pago recusou seu Access Token.',
-                tip: 'Verifique se você copiou o ACCESS TOKEN de PRODUÇÃO corretamente e se ele começa com APP_USR-.'
-            });
-        }
-        const userData = await testResponse.json();
-        console.log('DEBUG: Token validado com sucesso para o usuário MP:', userData.nickname);
-    } catch (testErr) {
-        console.warn('DEBUG: Não foi possível testar o token diretamente, prosseguindo...', testErr.message);
-    }
-
     try {
         const response = await preference.create({
             body: {
@@ -117,16 +97,17 @@ export default async function handler(req, res) {
         console.log('DEBUG: Preferência criada com sucesso', { id: response.id });
         res.status(200).json({ id: response.id, init_point: response.init_point });
     } catch (error) {
-        console.error('DEBUG: Erro detalhado Mercado Pago:', {
-            message: error.message,
-            stack: error.stack,
-            cause: error.cause,
-            headers: req.headers
-        });
-        res.status(500).json({
-            message: 'Erro ao gerar pagamento no Mercado Pago',
+        console.error('DEBUG: Erro detalhado Mercado Pago:', error);
+
+        // Se for erro de autenticação, vamos deixar isso claro
+        const isUnauthorized = error.message?.includes('UNAUTHORIZED') || error.status === 401;
+
+        res.status(isUnauthorized ? 401 : 500).json({
+            message: isUnauthorized ? 'Erro de Autenticação no Mercado Pago' : 'Erro ao gerar pagamento',
             details: error.message,
-            tip: 'Verifique se o seu MP_ACCESS_TOKEN é válido para o ambiente de produção.'
+            tip: isUnauthorized
+                ? 'Seu ACCESS_TOKEN está sendo recusado. Verifique se ele começa com APP_USR- e se não há espaços extras.'
+                : 'Verifique se seus dados de produto e valores estão corretos.'
         });
     }
 }
