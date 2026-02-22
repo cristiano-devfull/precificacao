@@ -69,6 +69,26 @@ export default async function handler(req, res) {
 
     const preference = new Preference(client);
 
+    // Validação extra: Testar se o token é aceito pela API do Mercado Pago
+    try {
+        const testResponse = await fetch('https://api.mercadopago.com/v1/users/me', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        if (!testResponse.ok) {
+            const errorData = await testResponse.json();
+            console.error('ERRO CRÍTICO: Token inválido detectado pelo teste direto!', errorData);
+            return res.status(401).json({
+                message: 'Token do Mercado Pago Inválido',
+                details: errorData.message || 'O Mercado Pago recusou seu Access Token.',
+                tip: 'Verifique se você copiou o ACCESS TOKEN de PRODUÇÃO corretamente e se ele começa com APP_USR-.'
+            });
+        }
+        const userData = await testResponse.json();
+        console.log('DEBUG: Token validado com sucesso para o usuário MP:', userData.nickname);
+    } catch (testErr) {
+        console.warn('DEBUG: Não foi possível testar o token diretamente, prosseguindo...', testErr.message);
+    }
+
     try {
         const response = await preference.create({
             body: {
