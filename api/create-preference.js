@@ -1,8 +1,6 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
 export default async function handler(req, res) {
-    // Log inicial para debugar o método que chega no Vercel
-    console.log(`DEBUG: Requisição ${req.method} recebida em /api/create-preference`);
 
     // Habilitar CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -29,14 +27,6 @@ export default async function handler(req, res) {
 
     const { email, userId, plan } = req.body || {};
 
-    console.log('DEBUG: Requisição recebida', {
-        hasBody: !!req.body,
-        email,
-        userId,
-        plan,
-        method: req.method,
-        hasToken: !!process.env.MP_ACCESS_TOKEN
-    });
 
     if (!email || !userId) {
         return res.status(400).json({ message: 'Email e UserId são obrigatórios no corpo da requisição.' });
@@ -48,9 +38,6 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Erro de configuração: Variável MP_ACCESS_TOKEN ausente ou padrão.' });
     }
 
-    // Log mascarado para verificação (Apenas primeiros 8 e últimos 4 caracteres)
-    const maskedToken = accessToken.substring(0, 8) + '...' + accessToken.substring(accessToken.length - 4);
-    console.log(`DEBUG: Usando Token: ${maskedToken} (Comp: ${accessToken.length}) | Usuário: ${userId}`);
 
     let title = 'PRECIFICAÇÃO PRO - Plano Anual';
     let unitPrice = 159.90;
@@ -60,7 +47,6 @@ export default async function handler(req, res) {
         unitPrice = 19.90;
     }
 
-    console.log('DEBUG: Criando preferência Mercado Pago', { title, unitPrice });
 
     // Configuração do Mercado Pago com Token de Ambiente
     const client = new MercadoPagoConfig({
@@ -94,10 +80,10 @@ export default async function handler(req, res) {
             }
         });
 
-        console.log('DEBUG: Preferência criada com sucesso', { id: response.id });
         res.status(200).json({ id: response.id, init_point: response.init_point });
     } catch (error) {
-        console.error('DEBUG: Erro detalhado Mercado Pago:', error);
+        // Log de erro reduzido para produção
+        console.error('Erro Mercado Pago:', error.message);
 
         // Se for erro de autenticação, vamos deixar isso claro
         const isUnauthorized = error.message?.includes('UNAUTHORIZED') || error.status === 401;
