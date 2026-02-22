@@ -82,9 +82,9 @@ export default async function handler(req, res) {
                 },
                 external_reference: userId,
                 back_urls: {
-                    success: `${req.headers.origin}/app.html?status=success`,
-                    failure: `${req.headers.origin}/app.html?status=failure`,
-                    pending: `${req.headers.origin}/app.html?status=pending`
+                    success: `${req.headers.origin || ('https://' + req.headers.host)}/app.html?status=success`,
+                    failure: `${req.headers.origin || ('https://' + req.headers.host)}/app.html?status=failure`,
+                    pending: `${req.headers.origin || ('https://' + req.headers.host)}/app.html?status=pending`
                 },
                 auto_return: 'approved'
             }
@@ -96,11 +96,13 @@ export default async function handler(req, res) {
         console.error('DEBUG: Erro detalhado Mercado Pago:', {
             message: error.message,
             stack: error.stack,
-            cause: error.cause
+            cause: error.cause,
+            headers: req.headers
         });
         res.status(500).json({
             message: 'Erro ao gerar pagamento no Mercado Pago',
-            details: error.message
+            details: error.message,
+            tip: 'Verifique se o seu MP_ACCESS_TOKEN é válido para o ambiente de produção.'
         });
     }
 }

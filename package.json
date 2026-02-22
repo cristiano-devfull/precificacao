@@ -1,6 +1,10 @@
 {
     "name": "precificacao-pro",
     "version": "1.0.0",
+    "type": "module",
+    "engines": {
+        "node": ">=18.x"
+    },
     "description": "Sistema de Precificação Inteligente com Integração Mercado Pago",
     "main": "index.html",
     "dependencies": {
