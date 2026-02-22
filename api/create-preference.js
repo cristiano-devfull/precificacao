@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
     // Log mascarado para verificação (Apenas primeiros 8 e últimos 4 caracteres)
     const maskedToken = accessToken.substring(0, 8) + '...' + accessToken.substring(accessToken.length - 4);
-    console.log(`DEBUG: Usando Token: ${maskedToken} | Usuário: ${userId}`);
+    console.log(`DEBUG: Usando Token: ${maskedToken} (Comp: ${accessToken.length}) | Usuário: ${userId}`);
 
     let title = 'PRECIFICAÇÃO PRO - Plano Anual';
     let unitPrice = 159.90;
