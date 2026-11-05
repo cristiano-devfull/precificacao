@@ -1,4 +1,4 @@
-import { supabaseClient } from './supabaseClient.js';
+import { account } from './appwriteClient.js';
 
 // DOM Elements
 const requestPhase = document.getElementById('request-reset-phase');
@@ -45,16 +45,12 @@ function initTheme() {
     });
 }
 
-async function checkRecoveryStatus() {
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-            requestPhase.classList.add('hidden');
-            updatePhase.classList.remove('hidden');
-            showToast("Verificação concluída. Defina sua nova senha.", "success");
-        }
-    });
+function checkRecoveryStatus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('userId');
+    const secret = urlParams.get('secret');
 
-    if (window.location.hash.includes('type=recovery')) {
+    if (userId && secret) {
         requestPhase.classList.add('hidden');
         updatePhase.classList.remove('hidden');
         showToast("Verificação concluída. Defina sua nova senha.", "success");
@@ -71,11 +67,9 @@ requestForm.addEventListener('submit', async (e) => {
         submitBtn.disabled = true;
         submitBtn.innerText = "ENVIANDO...";
 
-        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'recuperar-senha.html'
-        });
+        const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'recuperar-senha.html';
+        await account.createRecovery(email, redirectUrl);
 
-        if (error) throw error;
         showToast("Link enviado para o seu e-mail", "success");
         requestForm.reset();
     } catch (error) {
@@ -97,12 +91,19 @@ updateForm.addEventListener('submit', async (e) => {
         return showToast("As senhas não coincidem", "error");
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('userId');
+    const secret = urlParams.get('secret');
+
+    if (!userId || !secret) {
+        return showToast("Token de recuperação ausente ou expirado", "error");
+    }
+
     try {
         submitBtn.disabled = true;
         submitBtn.innerText = "ATUALIZANDO...";
 
-        const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
-        if (error) throw error;
+        await account.updateRecovery(userId, secret, newPassword, confirmPassword);
 
         showToast("Senha atualizada com sucesso!", "success");
         setTimeout(() => window.location.href = 'index.html', 2000);
@@ -113,4 +114,3 @@ updateForm.addEventListener('submit', async (e) => {
         submitBtn.innerText = "ATUALIZAR ACESSO";
     }
 });
-

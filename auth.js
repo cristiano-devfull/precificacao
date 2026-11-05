@@ -1,25 +1,36 @@
-// auth.js – Supabase authentication functions
-import { supabaseClient } from './supabaseClient.js';
+// auth.js – Appwrite authentication functions
+import { account, ID } from './appwriteClient.js';
 
 // Sign up new user
 export async function signUp(email, password) {
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
-  if (error) throw error;
-  return data;
+  try {
+    const user = await account.create(ID.unique(), email, password);
+    // Cria sessão automaticamente após cadastro
+    await account.createEmailPasswordSession(email, password);
+    return { user };
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Log in existing user
 export async function logIn(email, password) {
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return data;
+  try {
+    const session = await account.createEmailPasswordSession(email, password);
+    const user = await account.get();
+    return { session, user };
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Password recovery (send reset email)
 export async function recoverPassword(email) {
-  const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'recuperar-senha.html'
-  });
-  if (error) throw error;
-  return data;
+  try {
+    const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'recuperar-senha.html';
+    const response = await account.createRecovery(email, redirectUrl);
+    return response;
+  } catch (error) {
+    throw error;
+  }
 }

@@ -1,5 +1,5 @@
 // app.js – Digital Precision Application Logic
-import { supabaseClient } from './supabaseClient.js';
+import { account, databases, ID, Query, APPWRITE_DATABASE_ID } from './appwriteClient.js';
 import { signUp, logIn, recoverPassword } from './auth.js';
 import * as Calc from './calculations.js';
 
@@ -120,23 +120,13 @@ function initAuthUI() {
 
     try {
       if (isLoginMode) {
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await logIn(email, password);
         showToast("Acesso Autorizado", "success");
+        await checkSession();
       } else {
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) throw error;
-
-        if (data.user && data.session) {
-          showToast("Conta Criada", "success");
-        } else {
-          showToast("Verificação necessária", "success");
-          isLoginMode = true;
-          authTitle.innerText = "ENTRAR NO SISTEMA";
-          authSubmit.innerText = "ENTRAR";
-          authToggleText.innerText = "NÃO TEM UMA CONTA?";
-          authToggleLink.innerText = "CRIAR CONTA";
-        }
+        await signUp(email, password);
+        showToast("Conta Criada com sucesso", "success");
+        await checkSession();
       }
     } catch (error) {
       showToast(error.message, "error");
@@ -201,7 +191,7 @@ async function initMercadoPago() {
   const paywallLogoutBtn = document.getElementById('logout-paywall');
   if (paywallLogoutBtn) {
     paywallLogoutBtn.addEventListener('click', () => {
-      supabaseClient.auth.signOut().then(() => {
+      account.deleteSession('current').finally(() => {
         window.location.href = 'index.html';
       });
     });
@@ -209,17 +199,15 @@ async function initMercadoPago() {
 }
 
 async function checkSession() {
-  const { data } = await supabaseClient.auth.getSession();
-  session = data.session;
-  currentUser = session?.user;
+  try {
+    currentUser = await account.get();
+    currentUser.id = currentUser.$id;
+    currentUser.created_at = currentUser.$createdAt || currentUser.registration;
+  } catch (err) {
+    currentUser = null;
+  }
   updateUIState();
   if (currentUser) loadData();
-  supabaseClient.auth.onAuthStateChange((_event, _session) => {
-    session = _session;
-    currentUser = _session?.user;
-    updateUIState();
-    if (currentUser) loadData();
-  });
 
   // Listener para capturar retorno do pagamento (Query String)
   checkPaymentStatus();
@@ -235,7 +223,7 @@ function updateUIState() {
   if (currentUser) {
     authDiv.innerHTML = `<button id="logout-btn">DESCONECTAR</button>`;
     document.getElementById('logout-btn').addEventListener('click', () => {
-      supabaseClient.auth.signOut().then(() => {
+      account.deleteSession('current').finally(() => {
         window.location.href = 'index.html'; // Volta para Landing Page ao sair
       });
     });
@@ -314,28 +302,34 @@ function updateUIState() {
 
 // --- Data Loading ---
 async function loadData() {
+  if (!currentUser) return;
   try {
-    const [cfg, custos, ins, prods, ficha, pFab, pRev] = await Promise.all([
-      supabaseClient.from('configuracoes').select('*'),
-      supabaseClient.from('custos_fixos').select('*'),
-      supabaseClient.from('insumos').select('*'),
-      supabaseClient.from('produtos').select('*'),
-      supabaseClient.from('ficha_tecnica').select('*'),
-      supabaseClient.from('precificacao_fabricacao').select('*'),
-      supabaseClient.from('precificacao_revenda').select('*')
+    const userId = currentUser.$id || currentUser.id;
+    const queries = [Query.equal('user_id', userId), Query.limit(100)];
+
+    const [cfg, custos, ins, prods, ficha, pRev] = await Promise.all([
+      databases.listDocuments(APPWRITE_DATABASE_ID, 'configuracoes', queries).catch(() => ({ documents: [] })),
+      databases.listDocuments(APPWRITE_DATABASE_ID, 'custos_fixos', queries).catch(() => ({ documents: [] })),
+      databases.listDocuments(APPWRITE_DATABASE_ID, 'insumos', queries).catch(() => ({ documents: [] })),
+      databases.listDocuments(APPWRITE_DATABASE_ID, 'produtos', queries).catch(() => ({ documents: [] })),
+      databases.listDocuments(APPWRITE_DATABASE_ID, 'ficha_tecnica', queries).catch(() => ({ documents: [] })),
+      databases.listDocuments(APPWRITE_DATABASE_ID, 'precificacao_revenda', queries).catch(() => ({ documents: [] }))
     ]);
 
-    configData = (cfg.data && cfg.data.length > 0) ? cfg.data[0] : {};
-    custosFixosData = custos.data || [];
-    insumosData = ins.data || [];
-    produtosData = prods.data || [];
-    fichaTecnicaData = ficha.data || [];
-    precificacaoFab = pFab.data || [];
-    precificacaoRev = pRev.data || [];
+    const normalize = doc => ({ ...doc, id: doc.$id });
+
+    configData = (cfg.documents && cfg.documents.length > 0) ? normalize(cfg.documents[0]) : {};
+    custosFixosData = (custos.documents || []).map(normalize);
+    insumosData = (ins.documents || []).map(normalize);
+    produtosData = (prods.documents || []).map(normalize);
+    fichaTecnicaData = (ficha.documents || []).map(normalize);
+    precificacaoFab = [];
+    precificacaoRev = (pRev.documents || []).map(normalize);
 
     renderDashboard();
     renderCRUDs();
   } catch (error) {
+    console.error("Erro loadData:", error);
     showToast("Erro na sincronização de dados", "error");
   }
 }
@@ -1055,52 +1049,77 @@ function renderResaleRows() {
 // --- Action Handlers ---
 async function saveConfig(e) {
   e.preventDefault();
+  const userId = currentUser.$id || currentUser.id;
   const payload = {
-    user_id: currentUser.id,
-    faturamento_mensal: document.getElementById('cfg-fat').value,
-    taxa_impostos: document.getElementById('cfg-imp').value,
-    outras_taxas: document.getElementById('cfg-out').value,
-    margem_lucro: document.getElementById('cfg-mar').value
+    user_id: userId,
+    faturamento_mensal: String(document.getElementById('cfg-fat').value || '0'),
+    taxa_impostos: String(document.getElementById('cfg-imp').value || '0'),
+    outras_taxas: String(document.getElementById('cfg-out').value || '0'),
+    margem_lucro: String(document.getElementById('cfg-mar').value || '0')
   };
-  let error;
-  if (configData.id) {
-    ({ error } = await supabaseClient.from('configuracoes').update(payload).eq('id', configData.id));
-  } else {
-    ({ error } = await supabaseClient.from('configuracoes').insert(payload));
+  try {
+    if (configData && configData.id) {
+      await databases.updateDocument(APPWRITE_DATABASE_ID, 'configuracoes', configData.id, payload);
+    } else {
+      await databases.createDocument(APPWRITE_DATABASE_ID, 'configuracoes', ID.unique(), payload);
+    }
+    showToast("Configurações salvas", "success");
+    loadData();
+  } catch (error) {
+    showToast(error.message, "error");
   }
-  if (!error) { showToast("Configurações salvas", "success"); loadData(); }
-  else showToast(error.message, "error");
 }
 
 async function addCusto(e) {
   e.preventDefault();
-  const { error } = await supabaseClient.from('custos_fixos').insert({
-    user_id: currentUser.id,
-    descricao: document.getElementById('custo-desc').value,
-    valor: document.getElementById('custo-val').value
-  });
-  if (!error) { showToast("Custo adicionado", "success"); document.getElementById('custo-form').reset(); loadData(); }
+  try {
+    const userId = currentUser.$id || currentUser.id;
+    await databases.createDocument(APPWRITE_DATABASE_ID, 'custos_fixos', ID.unique(), {
+      user_id: userId,
+      descricao: document.getElementById('custo-desc').value,
+      valor: String(document.getElementById('custo-val').value || '0')
+    });
+    showToast("Custo adicionado", "success");
+    document.getElementById('custo-form').reset();
+    loadData();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
 }
 
 async function addInsumo(e) {
   e.preventDefault();
-  const { error } = await supabaseClient.from('insumos').insert({
-    user_id: currentUser.id,
-    nome: document.getElementById('ins-nome').value,
-    unidade: document.getElementById('ins-uni').value,
-    quantidade: document.getElementById('ins-qtd').value,
-    valor_total: document.getElementById('ins-total').value
-  });
-  if (!error) { showToast("Insumo cadastrado", "success"); document.getElementById('insumo-form').reset(); loadData(); }
+  try {
+    const userId = currentUser.$id || currentUser.id;
+    await databases.createDocument(APPWRITE_DATABASE_ID, 'insumos', ID.unique(), {
+      user_id: userId,
+      nome: document.getElementById('ins-nome').value,
+      unidade: document.getElementById('ins-uni').value,
+      quantidade: String(document.getElementById('ins-qtd').value || '0'),
+      valor_total: String(document.getElementById('ins-total').value || '0')
+    });
+    showToast("Insumo cadastrado", "success");
+    document.getElementById('insumo-form').reset();
+    loadData();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
 }
 
 async function addProduto(e) {
   e.preventDefault();
-  const { error } = await supabaseClient.from('produtos').insert({
-    user_id: currentUser.id,
-    nome: document.getElementById('prod-nome').value
-  });
-  if (!error) { showToast("Produto cadastrado", "success"); document.getElementById('produto-form').reset(); loadData(); }
+  try {
+    const userId = currentUser.$id || currentUser.id;
+    await databases.createDocument(APPWRITE_DATABASE_ID, 'produtos', ID.unique(), {
+      user_id: userId,
+      nome: document.getElementById('prod-nome').value
+    });
+    showToast("Produto cadastrado", "success");
+    document.getElementById('produto-form').reset();
+    loadData();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
 }
 
 async function addFichaItem(e) {
@@ -1109,13 +1128,20 @@ async function addFichaItem(e) {
   const iid = document.getElementById('ficha-insumo').value;
   const qtd = document.getElementById('ficha-qtd').value;
   if (!pid || !iid) return showToast("Selecione produto e insumo", "info");
-  const { error } = await supabaseClient.from('ficha_tecnica').insert({
-    user_id: currentUser.id,
-    produto_id: pid,
-    insumo_id: iid,
-    quantidade: qtd
-  });
-  if (!error) { showToast("Item vinculado", "success"); document.getElementById('ficha-form').reset(); loadData(); }
+  try {
+    const userId = currentUser.$id || currentUser.id;
+    await databases.createDocument(APPWRITE_DATABASE_ID, 'ficha_tecnica', ID.unique(), {
+      user_id: userId,
+      produto_id: pid,
+      insumo_id: iid,
+      quantidade: String(qtd || '0')
+    });
+    showToast("Item vinculado", "success");
+    document.getElementById('ficha-form').reset();
+    loadData();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
 }
 
 async function saveRevendaItem(e) {
@@ -1123,21 +1149,71 @@ async function saveRevendaItem(e) {
   const pid = document.getElementById('revenda-prod').value;
   const val = document.getElementById('revenda-valor').value;
   if (!pid) return showToast("Selecione o produto", "info");
-  const { error } = await supabaseClient.from('precificacao_revenda').insert({
-    user_id: currentUser.id,
-    produto_id: pid,
-    valor_compra: val,
-    markup: 0,
-    preco_venda: 0
-  });
-  if (!error) { showToast("Cálculo salvo", "success"); document.getElementById('revenda-form').reset(); loadData(); }
-  else showToast(error.message, "error");
+  try {
+    const userId = currentUser.$id || currentUser.id;
+    await databases.createDocument(APPWRITE_DATABASE_ID, 'precificacao_revenda', ID.unique(), {
+      user_id: userId,
+      produto_id: pid,
+      valor_compra: String(val || '0'),
+      markup: 0,
+      preco_venda: 0
+    });
+    showToast("Cálculo salvo", "success");
+    document.getElementById('revenda-form').reset();
+    loadData();
+  } catch (error) {
+    showToast(error.message, "error");
+  }
 }
 
 // Global exposure
-window.deleteCusto = async (id) => { if (confirm("Deseja realmente excluir este custo?")) { await supabaseClient.from('custos_fixos').delete().eq('id', id); showToast("Custo removido", "info"); loadData(); } };
-window.deleteInsumo = async (id) => { if (confirm("Deseja realmente excluir este insumo?")) { await supabaseClient.from('insumos').delete().eq('id', id); showToast("Insumo removido", "info"); loadData(); } };
-window.deleteProduto = async (id) => { if (confirm("Deseja realmente excluir este produto?")) { await supabaseClient.from('produtos').delete().eq('id', id); showToast("Produto removido", "info"); loadData(); } };
-window.deleteFicha = async (id) => { if (confirm("Deseja realmente excluir este item?")) { await supabaseClient.from('ficha_tecnica').delete().eq('id', id); showToast("Item removido", "info"); loadData(); } };
-window.deleteRevenda = async (id) => { if (confirm("Deseja realmente excluir esta precificação?")) { await supabaseClient.from('precificacao_revenda').delete().eq('id', id); showToast("Precificação removida", "info"); loadData(); } };
+window.deleteCusto = async (id) => {
+  if (confirm("Deseja realmente excluir este custo?")) {
+    try {
+      await databases.deleteDocument(APPWRITE_DATABASE_ID, 'custos_fixos', id);
+      showToast("Custo removido", "info");
+      loadData();
+    } catch (err) { showToast(err.message, "error"); }
+  }
+};
+
+window.deleteInsumo = async (id) => {
+  if (confirm("Deseja realmente excluir este insumo?")) {
+    try {
+      await databases.deleteDocument(APPWRITE_DATABASE_ID, 'insumos', id);
+      showToast("Insumo removido", "info");
+      loadData();
+    } catch (err) { showToast(err.message, "error"); }
+  }
+};
+
+window.deleteProduto = async (id) => {
+  if (confirm("Deseja realmente excluir este produto?")) {
+    try {
+      await databases.deleteDocument(APPWRITE_DATABASE_ID, 'produtos', id);
+      showToast("Produto removido", "info");
+      loadData();
+    } catch (err) { showToast(err.message, "error"); }
+  }
+};
+
+window.deleteFicha = async (id) => {
+  if (confirm("Deseja realmente excluir este item?")) {
+    try {
+      await databases.deleteDocument(APPWRITE_DATABASE_ID, 'ficha_tecnica', id);
+      showToast("Item removido", "info");
+      loadData();
+    } catch (err) { showToast(err.message, "error"); }
+  }
+};
+
+window.deleteRevenda = async (id) => {
+  if (confirm("Deseja realmente excluir esta precificação?")) {
+    try {
+      await databases.deleteDocument(APPWRITE_DATABASE_ID, 'precificacao_revenda', id);
+      showToast("Precificação removida", "info");
+      loadData();
+    } catch (err) { showToast(err.message, "error"); }
+  }
+};
 

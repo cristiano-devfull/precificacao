@@ -1,10 +1,11 @@
-const CACHE_NAME = 'precificacao-v2';
+const CACHE_NAME = 'precificacao-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './styles.css',
     './app.js',
-    './supabaseClient.js',
+    './auth.js',
+    './appwriteClient.js',
     './calculations.js',
     './manifest.json',
     './assets/logo.png',
