@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instruções de Uso | Precificação Pro</title>
+    <link rel="icon" type="image/png" href="./assets/favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .guide-container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 4rem 1.5rem;
+        }
+
+        .guide-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2.5rem 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .guide-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .guide-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            max-width: 650px;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .step-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 245, 255, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .step-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .step-card p, .step-card li {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .step-card ul, .step-card ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .step-card li {
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-box {
+            background: rgba(16, 185, 129, 0.08);
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.25rem;
+            border-radius: 4px;
+            margin: 1.25rem 0;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .formula-box {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px dashed var(--border-color);
+            padding: 1rem;
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin: 1rem 0;
+        }
+
+        .back-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="./assets/logo.png" alt="Logo">
+            PRECIFICAÇÃO <span>PRO</span>
+        </div>
+        <div class="nav-actions">
+            <a href="app.html" class="btn-back">← Voltar ao Sistema</a>
+        </div>
+    </nav>
+
+    <div class="guide-container">
+        <div class="guide-header">
+            <span class="step-badge">Manual Operacional</span>
+            <h1>Guia de Uso e Precificação Inteligente</h1>
+            <p>Aprenda a cadastrar seus dados na ordem correta para calcular custos, aplicar o Markup real e blindar o lucro da sua empresa.</p>
+            <a href="app.html" class="btn-primary-lg" style="text-decoration: none; display: inline-block;">Acessar o Painel</a>
+        </div>
+
+        <!-- Etapa 1: Ordem Recomendada -->
+        <div class="step-card">
+            <span class="step-badge">Fluxo Fundamental</span>
+            <h2>🚀 Qual é a ordem correta para cadastrar?</h2>
+            <p>Para obter cálculos 100% exatos e automáticos, siga sempre esta sequência lógica:</p>
+            <ol>
+                <li><strong>Configurações:</strong> Defina impostos, taxas de venda e sua meta de faturamento mensal.</li>
+                <li><strong>Custos Fixos:</strong> Cadastre todas as despesas mensais que existem mesmo que você não venda nada.</li>
+                <li><strong>Insumos:</strong> Cadastre as matérias-primas e embalagens compradas.</li>
+                <li><strong>Produtos:</strong> Cadastre os itens finais que sua empresa oferece.</li>
+                <li><strong>Ficha Técnica (Para Fabricação):</strong> Indique quanto de cada insumo é consumido no produto.</li>
+                <li><strong>Revenda:</strong> Se você apenas revende, informe o custo de compra na aba Revenda.</li>
+            </ol>
+        </div>
+
+        <!-- Etapa 2: Configurações -->
+        <div class="step-card">
+            <span class="step-badge">Passo 1</span>
+            <h2>⚙️ Configurações Gerais da Empresa</h2>
+            <p>Acesse a aba <strong>CONFIGURAÇÕES</strong> no menu lateral e preencha os parâmetros globais:</p>
+            <ul>
+                <li><strong>Faturamento Mensal Estimado:</strong> Quanto sua empresa espera faturar no mês (ex: <code>R$ 30.000,00</code>). É essencial para diluir o custo fixo.</li>
+                <li><strong>Taxa de Impostos (%):</strong> Alíquota do Simples Nacional, MEI ou regime tributário (ex: <code>6%</code>).</li>
+                <li><strong>Outras Taxas (%):</strong> Média de taxas de cartão de crédito, maquininha, gateway ou comissão de vendas (ex: <code>4.5%</code>).</li>
+                <li><strong>Margem de Lucro (%):</strong> O lucro líquido limpo que deseja colocar no bolso em cada venda (ex: <code>20%</code>).</li>
+            </ul>
+            <div class="highlight-box">
+                💡 <strong>Dica:</strong> Sempre clique em <strong>"SALVAR CONFIGURAÇÕES"</strong> após alterar esses valores. O sistema recalcula instantaneamente todos os produtos.
+            </div>
+        </div>
+
+        <!-- Etapa 3: Custos Fixos -->
+        <div class="step-card">
+            <span class="step-badge">Passo 2</span>
+            <h2>🏢 Gestão de Custos Fixos</h2>
+            <p>Custos fixos são despesas operacionais da empresa. Sem considerá-los no preço, você vende muito mas fecha o mês no vermelho.</p>
+            <p>Cadastre na aba <strong>CUSTOS FIXOS</strong>:</p>
+            <ul>
+                <li>Aluguel do espaço ou oficina</li>
+                <li>Energia elétrica, água e internet</li>
+                <li>Pró-labore dos sócios (salário fixo)</li>
+                <li>Contador, sistemas de software e licenças</li>
+                <li>Salários fixos da equipe</li>
+            </ul>
+            <div class="formula-box">
+                Margem de Custo Fixo = (Total de Custos Fixos ÷ Faturamento Mensal) × 100
+            </div>
+            <p>O sistema usa essa porcentagem no cálculo do Markup de cada produto.</p>
+        </div>
+
+        <!-- Etapa 4: Fabricação -->
+        <div class="step-card">
+            <span class="step-badge">Passo 3 (Para Fabricantes / Artesãos)</span>
+            <h2>🥣 Fluxo de Fabricação de Produtos</h2>
+            <p>Se você transforma matéria-prima em produto acabado, siga 3 passos rápidos:</p>
+
+            <h3>1. Cadastro de Insumos</h3>
+            <p>Na aba <strong>INSUMOS</strong>, cadastre o produto bruto que você compra no atacado ou fornecedor:</p>
+            <ul>
+                <li><strong>Nome:</strong> ex: Farinha de Trigo, Cera de Soja, Tecido Algodão</li>
+                <li><strong>Unidade:</strong> KG, G, L, ML, UN, M</li>
+                <li><strong>Quantidade da embalagem:</strong> ex: <code>5</code> (se comprou saco de 5kg)</li>
+                <li><strong>Valor Total Pago:</strong> ex: <code>25.00</code></li>
+            </ul>
+            <p>O sistema descobre o custo por grama, mililitro ou unidade automaticamente.</p>
+
+            <h3>2. Cadastro de Produtos</h3>
+            <p>Na aba <strong>PRODUTOS</strong>, cadastre apenas o nome do produto final pronto (ex: <em>Bolo de Cenoura com Chocolate</em> ou <em>Vela Aromática 200g</em>).</p>
+
+            <h3>3. Montagem da Ficha Técnica</h3>
+            <p>Na aba <strong>FICHA TÉCNICA</strong>, conecte o produto final aos seus ingredientes:</p>
+            <ul>
+                <li>Selecione o <strong>Produto</strong>.</li>
+                <li>Selecione o <strong>Insumo</strong>.</li>
+                <li>Digite a quantidade usada em 1 unidade (ex: <code>0.300</code> kg de farinha ou <code>1</code> pote de vidro).</li>
+            </ul>
+
+            <div class="highlight-box">
+                ✨ <strong>Resultado Automático:</strong> Vá para a aba <strong>FABRICAÇÃO</strong>. O sistema soma o Custo de Insumos (CMV), aplica o Markup multiplicador e exibe o <strong>Preço de Venda Sugerido</strong> para garantir o seu lucro líquido!
+            </div>
+        </div>
+
+        <!-- Etapa 5: Revenda -->
+        <div class="step-card">
+            <span class="step-badge">Passo 4 (Para Comércio / Revenda)</span>
+            <h2>📦 Fluxo de Revenda de Mercadorias</h2>
+            <p>Para quem compra o produto pronto e revende sem modificações:</p>
+            <ol>
+                <li>Cadastre o item na aba <strong>PRODUTOS</strong> (ex: <em>Camiseta Polo Azul G</em>).</li>
+                <li>Acesse a aba <strong>REVENDA</strong>.</li>
+                <li>Selecione o produto e informe o <strong>Valor de Compra / Custo de Aquisição</strong> pago ao fornecedor.</li>
+                <li>Clique em <strong>"SALVAR CÁLCULO"</strong>.</li>
+            </ol>
+            <p>O sistema aplica a fórmula de Markup Divisor e sugere o valor exato de venda para cobrir frete/custos fixos, taxas e sua margem.</p>
+        </div>
+
+        <!-- Etapa 6: Entendendo o Markup -->
+        <div class="step-card">
+            <span class="step-badge">Educação Financeira</span>
+            <h2>🧠 Por que nunca colocar "% por cima" do custo?</h2>
+            <p>O erro número 1 que quebra empresas é: se um produto custou R$ 100 e quero 20% de lucro, vender por R$ 120. Isso está matematicamente errado!</p>
+            <div class="formula-box">
+                Fórmula do Markup Divisor utilizada no sistema:<br>
+                Multiplicador = 100 ÷ [100 - (% Impostos + % Custos Fixos + % Outras Taxas + % Lucro Desejado)]
+            </div>
+            <p>Com essa fórmula real, mesmo após você pagar a maquininha, os impostos do governo e a luz do escritório, sobra exatamente o lucro que você planejou no início.</p>
+        </div>
+
+        <!-- Etapa 7: Relatórios -->
+        <div class="step-card">
+            <span class="step-badge">Passo 5</span>
+            <h2>📊 Exportação de Relatórios Gerenciais</h2>
+            <p>No topo da tela inicial do Dashboard, você encontra os botões de relatório:</p>
+            <ul>
+                <li><strong>PDF:</strong> Gera documento limpo e formatado para impressão ou envio por WhatsApp/Email.</li>
+                <li><strong>EXCEL (.xlsx):</strong> Gera planilha estruturada para controle contábil.</li>
+                <li><strong>CSV:</strong> Exportação de dados brutos para integração com outros sistemas e ERPs.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>
+

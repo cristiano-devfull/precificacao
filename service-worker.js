@@ -1,7 +1,9 @@
-const CACHE_NAME = 'precificacao-v4';
+const CACHE_NAME = 'precificacao-v5';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
+    './app.html',
+    './instrucoes.html',
     './styles.css',
     './app.js',
     './auth.js',
