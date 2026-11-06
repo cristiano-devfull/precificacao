@@ -221,15 +221,6 @@ function updateUIState() {
   const systemStatus = document.getElementById('system-status');
 
   if (currentUser) {
-    authDiv.innerHTML = `<button id="logout-btn">DESCONECTAR</button>`;
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      account.deleteSession('current').finally(() => {
-        window.location.href = 'index.html'; // Volta para Landing Page ao sair
-      });
-    });
-
-    if (systemStatus) systemStatus.classList.remove('hidden');
-
     // Lógicas de Acesso
     const createdAt = new Date(currentUser.created_at);
     const now = new Date();
@@ -244,6 +235,31 @@ function updateUIState() {
       isFullyPaid = true;
     }
 
+    let planoTexto = "TRIAL (" + Math.max(0, 30 - diffDays) + "d)";
+    if (isFullyPaid) {
+      planoTexto = "PLANO PRO";
+    } else if (isPromoPaid) {
+      planoTexto = "PROMO (" + Math.max(0, 60 - diffDays) + "d)";
+    }
+
+    authDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="display: flex; flex-direction: column; align-items: flex-end; font-size: 0.75rem; line-height: 1.2;">
+          <span style="font-weight: 600; color: var(--text-color);">${currentUser.name || currentUser.email}</span>
+          <span style="font-size: 0.65rem; color: var(--accent); font-weight: 700;">${planoTexto}</span>
+        </div>
+        <button id="logout-btn">DESCONECTAR</button>
+      </div>
+    `;
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      account.deleteSession('current').finally(() => {
+        window.location.href = 'index.html'; // Volta para Landing Page ao sair
+      });
+    });
+
+    if (systemStatus) systemStatus.classList.remove('hidden');
+
     let accessBlocked = false;
     const trialTitle = document.getElementById('trial-title');
     const trialDesc = document.getElementById('trial-desc');
@@ -253,8 +269,8 @@ function updateUIState() {
       // Acesso Total Liberado
       accessBlocked = false;
     } else if (isPromoPaid) {
-      // Checa se o mês promocional expirou (30 dias + 7 de trial = 37 dias)
-      if (diffDays > 37) {
+      // Checa se o mês promocional expirou (30 dias + 30 de trial = 60 dias)
+      if (diffDays > 60) {
         accessBlocked = true;
         if (trialTitle) trialTitle.innerText = "Sua promoção expirou!";
         if (trialDesc) trialDesc.innerText = "Seu mês promocional chegou ao fim. Para continuar usando o Precificação Pro por mais 11 meses, realize o upgrade agora.";
@@ -263,11 +279,11 @@ function updateUIState() {
         accessBlocked = false;
       }
     } else {
-      // Não pagou promo. Checa se trial expirou.
-      if (diffDays > 7) {
+      // Não pagou promo. Checa se trial expirou (30 dias).
+      if (diffDays > 30) {
         accessBlocked = true;
         if (trialTitle) trialTitle.innerText = "Seu período grátis acabou!";
-        if (trialDesc) trialDesc.innerText = "O seu acesso de 7 dias chegou ao fim. Aproveite nossa oferta de 1 mês por apenas R$ 19,90!";
+        if (trialDesc) trialDesc.innerText = "O seu acesso de 30 dias chegou ao fim. Aproveite nossa oferta de 1 mês por apenas R$ 19,90!";
         if (btnPay) btnPay.innerText = "ASSINAR PROMOÇÃO (R$ 19,90)";
       } else {
         accessBlocked = false;
